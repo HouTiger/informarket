@@ -2,7 +2,7 @@
 game website for the course "Computational Thoughts in Social Science" 
 
 * Initialize
-    * `user_pwd`, `holding_pwd.txt`, `buy_order.txt`, `sell_order.txt`, `order_cnt.txt`should be created ahead
+    * `user_pwd`, `user_holding.txt`, `del_pwd.txt`, `holding_pwd.txt`, `holding_pwd.txt`, `buy_order.txt`, `sell_order.txt`, `order_cnt.txt`should be created ahead
 * For professor using
     * `/delete_order_page`  
         delete order
