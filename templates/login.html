@@ -100,6 +100,7 @@
 
                 function request_order() {
                     // 刷新订单
+                    var user = $("#username").val();
                     $.post("/return_order", {}, function (dic) {
                         l1 = dic["buyorder"];
                         l2 = dic["sellorder"];
@@ -110,7 +111,11 @@
                                 if (j == 1) {
                                     continue;
                                 }
-                                $("#buy_order" + String(i) + String(j)).html(String(l1[i][j]));
+                                var s = String(l1[i][j])
+                                if (j == 0 && (String(l1[i][1]) == user)) {
+                                    s += '*';
+                                }
+                                $("#buy_order" + String(i) + String(j)).html(s);
                             }
                         }
                         for (var i = l1.length; i < 40; i += 1) {
@@ -118,6 +123,7 @@
                                 if (j == 1) {
                                     continue;
                                 }
+                                
                                 $("#buy_order" + String(i) + String(j)).html("____________");
                             }
                         }
@@ -127,7 +133,12 @@
                                 if (j == 1) {
                                     continue;
                                 }
-                                $("#sell_order" + String(i) + String(j)).html(String(l2[i][j]));
+                                var s = String(l2[i][j])
+                               
+                                if (j == 0 && (String(l2[i][1]) == user)) {
+                                    s += '*';
+                                }
+                                $("#sell_order" + String(i) + String(j)).html(s);
                             }
                         }
                         for (var i = l2.length; i < 40; i += 1) {
@@ -242,7 +253,9 @@
             <td id="Day5"></td>
         </tr>
     </table>
-
+    <br>
+    <!--显示自己的订单-->
+    
 
     <!--显示所有交易订单-->
     <br>
