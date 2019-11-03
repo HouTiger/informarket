@@ -3,7 +3,154 @@
 
 <head>
     <meta charset="UTF-8">
+    <title>Delete Order</title>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <style>
+        .hid {
+            display: none
+        }
+    </style>
 </head>
+
 <body>
+
+    <form action='' id="login_form">
+        order ID: &nbsp;<input type=text id="orderID">
+        <br>
+        password: <input type=text id="password">
+        <br>
+        order type: 
+        <select id="ordertype">
+            <option value="buy"> buy </option>
+            <option value="sell">sell </option>
+        </select>
+        <input type="button" value="submit" id="ordersub">
+    </form>
+    <div id="inv_pwd" class="hid"> invalid orderID or password</div>
+    <div id="deleted" class="hid"> order deleted successfully</div>
+    <table>
+            <tr>
+                <td>
+                    <table border=1> 
+                        <tr>        
+                        <th> Buy OrderID</th>
+                        <th> Day</th>
+                        <th> Quantity</th>
+                        <th> Price</th>
+                        <th> Total</th>
+                        </tr>
+                        <script>
+                            $.ajaxSettings.async = false;
+                            function request_order_str1() {
+                                var buy = "buy";
+                                $.post("/return_order_str", {type: buy}, function (str) {
+                                    document.write(str);
+                                })
+                            }
+                            request_order_str1();
+                        </script>
+                    </table>
     
+                </td>
+    
+    
+                <td>
+                    <table border=1>
+                        <th> Sell OrderID</th>
+                        <th> Day</th>
+                        <th> Quantity</th>
+                        <th> Price</th>
+                        <th> Total</th>
+                        <script>
+                                $.ajaxSettings.async = false;
+                                function request_order_str2() {
+                                    var sell = "sell"
+                                    $.post("/return_order_str", {type: sell}, function (str) {
+                                        document.write(str);
+                                    })
+                                }
+                                request_order_str2();
+                            </script>
+                    </table>
+                </td>
+            </tr>
+
+        </table>
+
+    <script>
+        $.ajaxSettings.async = false;
+        function request_order() {
+            // 刷新订单
+
+            $.post("/return_order", {}, function (dic) {
+                l1 = dic["buyorder"];
+                l2 = dic["sellorder"];
+
+                // window.alert(l1.length)
+                // window.alert(l2.length)
+                for (var i = 0; i < l1.length; i += 1) {
+                    for (var j = 0; j < 6; j += 1) {
+                        if (j == 1) {
+                            continue;
+                        }
+                        $("#buy_order" + String(i) + String(j)).html(String(l1[i][j]));
+                    }
+                }
+                for (var i = l1.length; i < 40; i += 1) {
+                    for (var j = 0; j < 6; j += 1) {
+                        if (j == 1) {
+                            continue;
+                        }
+                        $("#buy_order" + String(i) + String(j)).html("____________");
+                    }
+                }
+                
+                for (var i = 0; i < l2.length; i += 1) {
+                    for (var j = 0; j < 6; j += 1) {
+                        if (j == 1) {
+                            continue;
+                        }
+                        $("#sell_order" + String(i) + String(j)).html(String(l2[i][j]));
+                    }
+                }
+                for (var i = l2.length; i < 40; i += 1) {
+                    for (var j = 0; j < 6; j += 1) {
+                        if (j == 1) {
+                            continue;
+                        }
+                        $("#sell_order" + String(i) + String(j)).html("____________");
+                    }
+                }
+            })
+        }
+
+        function check_pwd() {
+            var pwd = $("#password").val();
+            var ID = $("#orderID").val();
+            var odt = $("#ordertype").val();
+            $.post("/check_del_ID_pwd", {orderID: ID, password: pwd, ordertype: odt}, function(valid) {
+                if (valid == "1") {
+                    $("#inv_pwd").addClass("hid");
+
+                    // 发送删除订单的请求
+                    $.post("/handle_delete", {orderID: ID, ordertype: odt}, function() {
+                        // window.alert("handle delete")
+                        $("#deleted").removeClass("hid");
+                    });
+                    // 更新页面订单情况
+                    request_order();
+
+                }
+                else {
+                    $("#inv_pwd").removeClass("hid");
+                    $("#deleted").addClass("hid");
+                }
+            })
+        }
+        $("#ordersub").click(function () {
+            check_pwd();
+        })
+    </script>
+
+
 </body>

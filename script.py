@@ -10,7 +10,7 @@ s = s.split('\n')
 for line in s:
     l = line.split()
     user_pwd[l[0]] = l[1]
-print(user_pwd)
+
 
 holding_pwd = "" # password for check holding condition
 
@@ -18,6 +18,15 @@ readin = open('holding_pwd.txt', 'r', encoding="UTF-8")
 s = readin.read()
 readin.close()
 holding_pwd = s
+
+del_pwd = ""
+
+readin = open('del_pwd.txt', 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+del_pwd = s
+
+# print(del_pwd)
 
 user_holding = {}  # cash, share 1, share 2 ... share 5
 for name in user_pwd:
@@ -94,6 +103,10 @@ def root():
 def holding_condition():
     return render_template("holding_condition.html")
 
+@myWeb.route("/delete_order_page")
+def delete_order():
+    return render_template("delete_order.html")
+
 @myWeb.route("/store_data")  # 存储数据
 def store_data():
     # 把订单 市价 持仓情况全部写进不同的txt中
@@ -167,6 +180,40 @@ def check_holding_pwd():
         return '1'
     else:
         return '0'
+
+@myWeb.route("/check_del_ID_pwd", methods=["post"])
+def check_del_ID_pwd():
+    global del_pwd
+    global buy_order
+    global sell_order
+
+    ID = request.form["orderID"]
+    pwd = request.form["password"]
+    odt = request.form["ordertype"]
+    print(ID, pwd, odt)
+    if pwd == del_pwd:
+        print("valid del pwd")
+        flag = False
+        ls = []
+        if odt == "buy":
+            ls = buy_order
+        else:
+            ls = sell_order
+        int_ID = int(ID)
+        for o in ls:
+            if o[0] == int_ID:
+                flag = True
+                break
+        
+        if not flag:
+            return '0'
+        else:
+            return '1'
+
+    else:
+        print("invalid del pwd")
+        return '0'
+
 
 @myWeb.route("/return_holding", methods=["post"])
 def return_holding():
@@ -376,6 +423,13 @@ def handle_order():
             add_order(order_cnt, username, day, quantity, price, price * quantity, "sell")
     return '1'
 
+
+@myWeb.route("/handle_delete", methods=["post"])
+def handle_delete():
+    ID = request.form["orderID"]
+    odt = request.form["ordertype"]
+    del_order(int(ID), odt)
+    return '1'
 
 if __name__ == "__main__":
     myWeb.run(host="0.0.0.0", port=80, debug=True)
