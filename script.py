@@ -29,13 +29,28 @@ del_pwd = s
 # print(del_pwd)
 
 user_holding = {}  # cash, share 1, share 2 ... share 5
-for name in user_pwd:
-    user_holding[name] = [100, 10, 10, 10, 10, 10]
+readin = open('user_holding.txt', 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+s = s.split('\n')
+for line in s:
+    l = line.split()
+    user_holding[l[0]] = [float(l[1]), int(l[2]), int(l[3]), int(l[4]), int(l[5]), int(l[6])]
 
 
 market_price = [0, 0, 0, 0, 0]  # 最近四十次成交的均价
+'''
+readin = open('marketprice.txt', 'r', encoding="UTF-8")
+s = readin.read()
+s = s.split()
+for i in range(len(market_price)):
+    market_price[i] = float(s[i])
+'''
 
-market_price_record = [[] for x in range(5)]  # 5 * 40 * 2
+market_price_record = [[] for x in range(5)]  # 5 * 40 * 2 [quant, total]
+
+
+
 
 def update_market_price(day):
     # day = 12 - 16
@@ -59,8 +74,32 @@ def update_market_price(day):
 
 # order是2个40 * 6的list, orderID username Day quant price total
 buy_order = []
+readin = open("buy_order.txt", 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+s = s.split('\n')
+for line in s:
+    l = line.split()
+    if l == []:
+        continue
+    buy_order.append([int(l[0]), l[1], int(l[2]), int(l[3]), float(l[4]), float(l[5])])
+
 sell_order = []
+readin = open("sell_order.txt", 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+s = s.split('\n')
+for line in s:
+    l = line.split()
+    if l == []:
+        continue
+    sell_order.append([int(l[0]), l[1], int(l[2]), int(l[3]), float(l[4]), float(l[5])])
+
 order_cnt = 0
+readin = open("order_cnt.txt", 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+order_cnt = int(s)
 
 def del_order(ID, buy_sell):
     global buy_order
@@ -117,7 +156,7 @@ def store_data():
 
     localtime = time.asctime(time.localtime(time.time()))
 
-    output = open('buy_order.txt', 'a+', encoding='UTF-8')
+    output = open('buy_order_record.txt', 'a+', encoding='UTF-8')
     output.write(str(localtime) + '\n')
     for o in buy_order:
         rowtxt = "{}, {}, {}, {}, {}, {}".format(o[0], o[1], o[2], o[3], o[4], o[5])
@@ -126,7 +165,7 @@ def store_data():
     output.write('\n')
     output.close()
 
-    output = open('sell_order.txt', 'a+', encoding='UTF-8')
+    output = open('sell_order_record.txt', 'a+', encoding='UTF-8')
     output.write(str(localtime) + '\n')
     for o in sell_order:
         rowtxt = "{}, {}, {}, {}, {}, {}".format(o[0], o[1], o[2], o[3], o[4], o[5])
@@ -135,7 +174,7 @@ def store_data():
     output.write('\n')
     output.close()
 
-    output = open('market_price.txt', 'a+', encoding='UTF-8')
+    output = open('market_price_record.txt', 'a+', encoding='UTF-8')
     output.write(str(localtime) + '\n')
     o = market_price
     rowtxt = "{}, {}, {}, {}, {}".format(o[0], o[1], o[2], o[3], o[4])
@@ -143,7 +182,7 @@ def store_data():
     output.write('\n\n')
     output.close()
 
-    output = open('user_holding.txt', 'a+', encoding='UTF-8')
+    output = open('user_holding_record.txt', 'a+', encoding='UTF-8')
     output.write(str(localtime) + '\n')
     for name in user_holding:
         o = user_holding[name]
@@ -153,7 +192,33 @@ def store_data():
     output.write('\n')
     output.close()
 
-    return 'data stores successfully'
+    # user_holding
+    output = open('user_holding.txt', 'w+', encoding='UTF-8')
+    for name in user_holding:
+        rowtxt = "{} {} {} {} {} {} {}\n".format(name, o[0], o[1], o[2], o[3], o[4], o[5])
+        output.write(rowtxt)
+    output.close()
+    # buy_order
+    output = open('buy_order.txt', 'w+', encoding='UTF-8')
+    for o in buy_order:
+        rowtxt = "{} {} {} {} {} {}\n".format(o[0], o[1], o[2], o[3], o[4], o[5])
+        output.write(rowtxt)
+    output.close()
+
+
+    # sell_order
+    output = open('sell_order.txt', 'w+', encoding='UTF-8')
+    for o in sell_order:
+        rowtxt = "{} {} {} {} {} {}\n".format(o[0], o[1], o[2], o[3], o[4], o[5])
+        output.write(rowtxt)
+    output.close()
+
+    # order_cnt
+    output = open("order_cnt.txt", 'w+', encoding='UTF-8')
+    output.write(str(order_cnt))
+    output.close()
+
+    return 'data stored successfully'
 
 
 @myWeb.route("/check_user_pwd", methods=["post"])
