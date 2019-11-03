@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>User Holding Condition</title>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <style>
+        .hid {
+            display: none
+        }
+    </style>
+
+
+</head>
+<body>
+    <form action='' id="login_form">
+        password: <input type=text id="password">
+        <input type="button" value="submit" class="button" id="pwdsub">
+    </form>    
+    <div id="inv_pwd" class="hid"> invalid password</div>
+    <table border=1>
+        <tr>
+            <th>user</th>
+            <th>cash</th>
+            <th>December 12</th>
+            <th>December 13</th>
+            <th>December 14</th>
+            <th>December 15</th>
+            <th>December 16</th>
+        </tr>
+        <script>
+            $.ajaxSettings.async = false;
+            function write_holding_string() {
+                $.post("/return_holding_str", {}, function(str) {
+                    document.write(str);
+                })
+            }
+            function check_holding_pwd() {
+                var pwd = $('#password').val();
+                $.post("/check_holding_pwd", {password: pwd}, function(valid) {
+                    if (valid == '1') {
+                        $("#inv_pwd").addClass("hid");
+                        $("#login_form").addClass("hid");
+                        write_holding_string();
+                    }
+                    else {
+                        $("#inv_pwd").removeClass("hid");
+                    }
+                })
+            }
+            $('#pwdsub').click(function () {
+                check_holding_pwd();
+            })
+        </script>
+    </table>
+</body>

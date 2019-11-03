@@ -1,0 +1,381 @@
+from flask import Flask, request, render_template
+import time
+myWeb = Flask(__name__)
+
+user_pwd = {} # user-password dictionary
+readin = open('user_pwd.txt', "r", encoding="UTF-8")
+s = readin.read()
+readin.close()
+s = s.split('\n')
+for line in s:
+    l = line.split()
+    user_pwd[l[0]] = l[1]
+print(user_pwd)
+
+holding_pwd = "" # password for check holding condition
+
+readin = open('holding_pwd.txt', 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+holding_pwd = s
+
+user_holding = {}  # cash, share 1, share 2 ... share 5
+for name in user_pwd:
+    user_holding[name] = [100, 10, 10, 10, 10, 10]
+
+
+market_price = [0, 0, 0, 0, 0]  # 最近四十次成交的均价
+
+market_price_record = [[] for x in range(5)]  # 5 * 40 * 2
+
+def update_market_price(day):
+    # day = 12 - 16
+    global market_price
+    global market_price_record
+    print(day)
+    length = len(market_price_record[day - 12])
+    if length > 40:
+        for i in range(length - 40):
+            del market_price_record[day - 12][i]
+    share_sum = 0.0
+    price_sum = 0.0
+    for l in market_price_record[day - 12]:
+        share_sum += l[0]
+        price_sum += l[1]
+    if share_sum == 0:
+        market_price[day - 12] = 0
+    else:
+        market_price[day - 12] = price_sum / share_sum
+    return
+
+# order是2个40 * 6的list, orderID username Day quant price total
+buy_order = []
+sell_order = []
+order_cnt = 0
+
+def del_order(ID, buy_sell):
+    global buy_order
+    global sell_order
+    if buy_sell == "buy":
+        for i in range(len(buy_order)):
+            if buy_order[i][0] == ID:
+                del buy_order[i]
+                break
+    else:
+        for i in range(len(sell_order)):
+            if sell_order[i][0] == ID:
+                del sell_order[i]
+                break
+    return
+
+def add_order(ID, user, day, quant, price, total, buy_sell):
+    global buy_order
+    global sell_order
+    if buy_sell == "buy":
+        buy_order.append([ID, user, day, quant, price, total])
+        buy_order = sorted(buy_order, key= lambda x: x[0], reverse=True)
+        if len(buy_order) > 40:
+            del buy_order[len(buy_order) - 1]
+    else:
+        sell_order.append([ID, user, day, quant, price, total])
+        sell_order = sorted(sell_order, key= lambda x: x[0], reverse=True)
+        if len(sell_order) > 40:
+            del sell_order[len(sell_order) - 1]
+    return
+
+
+
+
+@myWeb.route("/")  # 主页
+def root():
+    return render_template("login.html")
+
+@myWeb.route("/holding_condition")
+def holding_condition():
+    return render_template("holding_condition.html")
+
+@myWeb.route("/store_data")  # 存储数据
+def store_data():
+    # 把订单 市价 持仓情况全部写进不同的txt中
+    global buy_order
+    global sell_order
+    global market_price
+    global user_holding
+
+    localtime = time.asctime(time.localtime(time.time()))
+
+    output = open('buy_order.txt', 'a+', encoding='UTF-8')
+    output.write(str(localtime) + '\n')
+    for o in buy_order:
+        rowtxt = "{}, {}, {}, {}, {}, {}".format(o[0], o[1], o[2], o[3], o[4], o[5])
+        output.write(rowtxt)
+        output.write('\n')
+    output.write('\n')
+    output.close()
+
+    output = open('sell_order.txt', 'a+', encoding='UTF-8')
+    output.write(str(localtime) + '\n')
+    for o in sell_order:
+        rowtxt = "{}, {}, {}, {}, {}, {}".format(o[0], o[1], o[2], o[3], o[4], o[5])
+        output.write(rowtxt)
+        output.write('\n')
+    output.write('\n')
+    output.close()
+
+    output = open('market_price.txt', 'a+', encoding='UTF-8')
+    output.write(str(localtime) + '\n')
+    o = market_price
+    rowtxt = "{}, {}, {}, {}, {}".format(o[0], o[1], o[2], o[3], o[4])
+    output.write(rowtxt)
+    output.write('\n\n')
+    output.close()
+
+    output = open('user_holding.txt', 'a+', encoding='UTF-8')
+    output.write(str(localtime) + '\n')
+    for name in user_holding:
+        o = user_holding[name]
+        rowtxt = "{}, {}, {}, {}, {}, {}, {}".format(name, o[0], o[1], o[2], o[3], o[4], o[5])
+        output.write(rowtxt)
+        output.write('\n')
+    output.write('\n')
+    output.close()
+
+    return 'data stores successfully'
+
+
+@myWeb.route("/check_user_pwd", methods=["post"])
+def check_user_pwd():
+    # 检查用户名和密码
+    username = request.form["username"]
+    password = request.form["password"]
+
+    if username in user_pwd:
+        if user_pwd[username] == password:
+
+            return '1'
+        else:
+            return '0'
+    else:
+        return '-1'
+        # 若用户名密码均正确 返回1, 用户名正确密码错误返回0, 用户名错误返回-1
+        # 并且如果用户名和密码正确，返回持仓情况
+
+@myWeb.route("/check_holding_pwd", methods=["post"])
+def check_holding_pwd():
+    pwd = request.form["password"]
+    if pwd == holding_pwd:
+        return '1'
+    else:
+        return '0'
+
+@myWeb.route("/return_holding", methods=["post"])
+def return_holding():
+    username = request.form["username"]
+    return {username: user_holding[username]}
+
+@myWeb.route("/return_holding_str", methods=["post"])
+def return_holding_str():
+    global user_holding
+    s = "<!doctype html><html><head><meta charset='UTF-8'></head><body>"
+    s += "<table border=1><tr><th>user</th><th>cash</th><th>December 12</th><th>December 13</th><th>December 14</th><th>December 15</th><th>December 16</th></tr>"
+    for name in user_holding:
+        s += "<tr>"
+        s += "<td>"
+        s += name
+        s += "</td>"
+        hold = user_holding[name]
+        for it in hold:
+            s += "<td>"
+            s += str(it)
+            s += "</td>"
+
+        s += "</tr>"
+    s += "</table></body>"
+        
+    return s
+
+
+
+@myWeb.route("/return_price", methods=["post"])
+def return_price():
+    return {"price": market_price}
+
+
+@myWeb.route("/return_order", methods=["post"])
+def return_order():
+
+    return {"buyorder": buy_order, "sellorder": sell_order}
+
+
+@myWeb.route("/return_order_str", methods=["post"])
+def return_order_str():
+    table_type = request.form["type"]
+    ls = []
+    if table_type == "buy":
+        ls = buy_order
+    else:
+        ls = sell_order
+    
+    lines = len(ls)
+
+
+    s = ""
+    for i in range(lines):
+        s += "<tr>"
+        for j in range(6):
+            if j == 1:
+                continue
+            s += ("<td id='" + table_type + "_order" + str(i) + str(j) + "'>" + str(ls[i][j]) + "</td>")
+        s += "</tr>"
+    for i in range(lines, 40):
+        s += "<tr>"
+        for j in range(6):
+            if j == 1:
+                continue
+            s += ("<td id='" + table_type + "_order" + str(i) + str(j) + "'>" + "____________" + "</td>")
+        s += "</tr>"
+    return s
+
+
+@myWeb.route("/handle_order", methods=["post"])
+def handle_order():
+    global user_pwd
+    global user_holding
+    global market_price
+    global market_price_record
+    global buy_order
+    global sell_order
+    global order_cnt
+    # user: username, pwd: password, quant: quantity, pri: price, odt: ordertype, Day : date
+    username = request.form["user"]
+    password = request.form["pwd"]
+
+    # 防止有小伙子作弊
+    if username in user_pwd:
+        if user_pwd[username] != password:
+            # 正确的用户名和错误的密码
+            return '0'
+    else:
+        # 错误的用户名
+        return '0'
+    
+    quantity = int(request.form["quant"])
+    price = float(request.form["pri"])
+    ordertype = request.form["odt"]  # "buy" or "sell"
+    day = int(request.form["Day"])  # 12 13 14 15 16 17
+
+    order_cnt += 1  # 这个订单的编号
+    # 确定是买还是卖
+
+    if ordertype == "buy":
+        print("into buy part")
+        if len(sell_order) != 0:
+            # 如果是买，则把 该日 所有卖出订单价格由低到高排序
+            ls_buy = []  # n * 6
+            for o in sell_order:
+                if o[2] == day:
+                    ls_buy.append(o)
+            ls_buy = sorted(ls_buy, key=lambda x: x[4])
+
+            left_quant = quantity
+            # orderID 0, username 1, day 2, quant 3, price 4, total 5
+            # cash, share 1, share 2 ... share 5
+            for i in range(len(ls_buy)):
+                o = ls_buy[i]
+            
+                if price >= o[4]:  # 成交价为o[4]
+                    actual_quant = min(left_quant, o[3])
+                    # 检查双方股票和资金余额
+                    if actual_quant <= user_holding[o[1]][day - 12 + 1] and user_holding[username][0] >= (actual_quant * o[4]):
+                        # 处理订单余额
+                        left_quant -= actual_quant
+                        # 股票变动
+                        user_holding[username][day - 12 + 1] += actual_quant
+                        user_holding[o[1]][day - 12 + 1] -= actual_quant
+                        # 资金变动
+                        user_holding[username][0] -= actual_quant * o[4]
+                        user_holding[o[1]][0] += actual_quant * o[4]
+                        # 更新卖方订单
+                        if actual_quant == o[3]:
+                            del_order(o[0], "sell")
+                        else:
+                            o[3] -= actual_quant
+                            o[5] -= actual_quant * o[4]
+
+                        # 更新市场价格记录队列
+                        market_price_record[day -
+                                            12].append([actual_quant, actual_quant * o[4]])
+                        # 若全部买到了，则终止
+                        if left_quant == 0:
+                            break
+                else:
+                    break
+            # 若有剩余，添加新订单
+            if left_quant > 0:
+                add_order(order_cnt, username, day, left_quant, price, price * left_quant, "buy")
+
+
+            # 更新市场价格
+            update_market_price(day)
+        else:
+            add_order(order_cnt, username, day, quantity, price, price * quantity, "buy")
+
+        # 如果是卖，则所有买的订单价格由高到低排序
+    else:
+        print("into sell part")
+        if len(buy_order) != 0:
+            # 遍历订单，每成交一单，则在 该日 的最近成交队列里加上一个订单，如果成交订单总数超过20个，则删掉旧订单
+            ls_sell = []
+            for o in buy_order:
+                if o[2] == day:
+                    ls_sell.append(o)
+            ls_sell = sorted(ls_sell, key=lambda x: x[4], reverse=True)
+
+            left_quant = quantity
+            # orderID 0, username 1, day 2, quant 3, price 4, total 5
+            # cash, share 1, share 2 ... share 5
+            for i in range(len(ls_sell)):
+                o = ls_sell[i]
+            
+                if price <= o[4]:  # 成交价为o[4]
+                    actual_quant = min(left_quant, o[3])
+                    # 检查双方股票和资金余额
+                    if actual_quant <= user_holding[username][day - 12 + 1] and user_holding[o[1]][0] >= (actual_quant * price):
+                        # 处理订单余额
+                        left_quant -= actual_quant
+                        # 股票变动
+                        user_holding[username][day - 12 + 1] -= actual_quant
+                        user_holding[o[1]][day - 12 + 1] += actual_quant
+                        # 资金变动
+                        user_holding[username][0] += actual_quant * price
+                        user_holding[o[1]][0] -= actual_quant * price
+                        # 更新买方订单
+                        if actual_quant == o[3]:
+                            del_order(o[0], "buy")
+                        else:
+                            o[3] -= actual_quant
+                            o[5] -= actual_quant * price
+
+                        # 更新市场价格记录队列
+                        market_price_record[day -
+                                            12].append([actual_quant, actual_quant * price])
+                        # 若全部买到了，则终止
+                        if left_quant == 0:
+                            break
+                else:
+                    break
+            # 若有剩余，添加新订单
+            if left_quant > 0:
+                add_order(order_cnt, username, day, left_quant, price, price * left_quant, "sell")
+
+
+            # 更新市场价格
+            update_market_price(day)
+            
+        else:
+            add_order(order_cnt, username, day, quantity, price, price * quantity, "sell")
+    return '1'
+
+
+if __name__ == "__main__":
+    myWeb.run(host="0.0.0.0", port=80, debug=True)

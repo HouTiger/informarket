@@ -1,0 +1,363 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Information Market</title>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <style>
+        .hid {
+            display: none
+        }
+
+        option {
+            display: inline-block;
+            width: 100px;
+            position: relative;
+            vertical-align: middle;
+            padding: 0;
+            overflow: hidden;
+            background-color: #fff;
+            color: #555;
+            border: 1px solid #aaa;
+            text-shadow: none;
+            border-radius: 4px;
+            transition: box-shadow 0.25s ease;
+            z-index: 2;
+        }
+
+        .button {
+            width: 70px;
+            height: 40px;
+            font-family: monospace;
+        }
+
+        .input_blank {
+            width: 200px;
+            height: 20px;
+        }
+
+        /*input {
+            cursor: pointer;
+            padding: 10px;
+            width: 130px;
+            height: 20px;
+            border: 1px solid #aaa;
+            background: transparent;
+            background-image: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }*/
+
+        #head {
+            font-size: large;
+            width: 200px;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <form action='' id="login_form">
+        username: <input type=text id="username"><br>
+        password: <input type=text id="password">
+        <input type="button" value="submit" class="button" id="usersub">
+    </form>
+    <div class="hid" id="invalid_user"> invalid username</div>
+    <div class="hid" id="wrong_pwd"> wrong password</div>
+    <div class="hid" id="inv_usr_pwd"> invalid user or password, please reload the page and sign again</div>
+    <!--交易框-->
+
+    <table>
+        <tr>
+            <td>
+                <form class="hid" id="buy_sell_form">
+                    quantity: <input type="text" id="quant">
+                    <br>
+                    price: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="price">
+                    <br>
+                    <select name="day" id="sel_day">
+                        <option value="12">December 12
+                        <option value="13">December 13
+                        <option value="14">December 14
+                        <option value="15">December 15
+                        <option value="16">December 16
+                    </select>
+                    <select id="buy_sell_sel">
+                        <option value="buy"> buy</option>
+                        <option value="sell"> sell</option>
+                    </select>
+
+                    <input type="button" value="submit" class="button" id="order_submit">
+
+                    <div id="invalid_quant_price" class="hid"> invalid quantity or price</div>
+                    <div id="order_sub_suc" class="hid"> order submitted successfully</div>
+                </form>
+                <br>
+            </td>
+            <script>
+                $.ajaxSettings.async = false;
+
+                function request_order() {
+                    // 刷新订单
+                    $.post("/return_order", {}, function (dic) {
+                        l1 = dic["buyorder"];
+                        l2 = dic["sellorder"];
+                        // window.alert(l1.length)
+                        // window.alert(l2.length)
+                        for (var i = 0; i < l1.length; i += 1) {
+                            for (var j = 0; j < 6; j += 1) {
+                                if (j == 1) {
+                                    continue;
+                                }
+                                $("#buy_order" + String(i) + String(j)).html(String(l1[i][j]));
+                            }
+                        }
+                        for (var i = l1.length; i < 40; i += 1) {
+                            for (var j = 0; j < 6; j += 1) {
+                                if (j == 1) {
+                                    continue;
+                                }
+                                $("#buy_order" + String(i) + String(j)).html("____________");
+                            }
+                        }
+                        
+                        for (var i = 0; i < l2.length; i += 1) {
+                            for (var j = 0; j < 6; j += 1) {
+                                if (j == 1) {
+                                    continue;
+                                }
+                                $("#sell_order" + String(i) + String(j)).html(String(l2[i][j]));
+                            }
+                        }
+                        for (var i = l2.length; i < 40; i += 1) {
+                            for (var j = 0; j < 6; j += 1) {
+                                if (j == 1) {
+                                    continue;
+                                }
+                                $("#sell_order" + String(i) + String(j)).html("____________");
+                            }
+                        }
+                    })
+                }
+
+                function send_order_request() {
+                    var username = $("#username").val();
+                    var password = $("#password").val();
+                    var quantity = $("#quant").val();
+                    var price = $("#price").val();
+                    var date = $("#sel_day").val();
+                    var n_quantity = Number(quantity);
+                    var n_price = Number(price);
+                    var odtflag = $("#buy_sell_sel").val();
+                    if (quantity == "" || price == "" || (typeof (n_quantity) != 'number') ||
+                        (typeof (n_price) != 'number') || n_quantity <= 0 || n_price <= 0 || (Math.floor(n_quantity) != n_quantity)) {
+                        $("#invalid_quant_price").removeClass("hid");
+                        $("#order_sub_suc").addClass("hid")
+                    }
+                    else {
+                        $("#invalid_quant_price").addClass("hid");
+                        $("#order_sub_suc").removeClass("hid")
+
+                        $.post("/handle_order", { user: username, pwd: password, quant: quantity, pri: price, Day: date, odt: odtflag }, function (s) {
+                            if (s == '0') {
+                                $("#inv_usr_pwd").removeClass("hid");
+                            }
+                            request_price();
+                            request_holding();
+                            request_order();
+                        })
+                    }
+                }
+
+                $("#order_submit").click(function () {
+                    send_order_request();
+                })
+            </script>
+            <!--显示市场价格-->
+            <td>
+                <table border=1>
+                    <tr>
+                        <th>Day</th>
+                        <th>Market Price</th>
+                    </tr>
+                    <tr>
+                        <td>December 12</td>
+                        <td id="p1"> 0</td>
+                    </tr>
+                    <tr>
+                        <td>December 13</td>
+                        <td id="p2"> 0</td>
+                    </tr>
+                    <tr>
+                        <td>December 14</td>
+                        <td id="p3"> 0</td>
+                    </tr>
+                    <tr>
+                        <td>December 15</td>
+                        <td id="p4"> 0</td>
+                    </tr>
+                    <tr>
+                        <td>December 16</td>
+                        <td id="p5"> 0</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <script>
+        $.ajaxSettings.async = false;
+        function request_price() {
+            $.post("/return_price", {}, function (dic) {
+                // dic = {"price:[p1, p2, ..., p5]"}
+                var ls = dic["price"];
+                for (var i = 1; i < 6; i += 1) {
+                    $("#p" + String(i)).html(String(ls[i - 1]));
+                }
+            })
+        }
+        request_price();
+    </script>
+
+    <br>
+    <!--持仓情况-->
+    <table border=1>
+        <tr>
+            <th>user</th>
+            <th>cash</th>
+            <th>December 12</th>
+            <th>December 13</th>
+            <th>December 14</th>
+            <th>December 15</th>
+            <th>December 16</th>
+        </tr>
+        <tr>
+            <td id="userID"></td>
+            <td id="cash"></td>
+            <td id="Day1"></td>
+            <td id="Day2"></td>
+            <td id="Day3"></td>
+            <td id="Day4"></td>
+            <td id="Day5"></td>
+        </tr>
+    </table>
+
+
+    <!--显示所有交易订单-->
+    <br>
+    <table>
+        <tr>
+            <td>
+                <table border=1> 
+                    <tr>        
+                    <th> Buy OrderID</th>
+                    <th> Day</th>
+                    <th> Quantity</th>
+                    <th> Price</th>
+                    <th> Total</th>
+                    </tr>
+                    <script>
+                        $.ajaxSettings.async = false;
+                        function request_order_str1() {
+                            var buy = "buy";
+                            $.post("/return_order_str", {type: buy}, function (str) {
+                                document.write(str);
+                            })
+                        }
+                        request_order_str1();
+                    </script>
+                </table>
+
+            </td>
+
+
+            <td>
+                <table border=1>
+                    <th> Sell OrderID</th>
+                    <th> Day</th>
+                    <th> Quantity</th>
+                    <th> Price</th>
+                    <th> Total</th>
+                    <script>
+                            $.ajaxSettings.async = false;
+                            function request_order_str2() {
+                                var sell = "sell"
+                                $.post("/return_order_str", {type: sell}, function (str) {
+                                    document.write(str);
+                                })
+                            }
+                            request_order_str2();
+                        </script>
+                </table>
+            </td>
+        </tr>
+
+        <!--输出所有订单
+        <script>
+            $.ajaxSettings.async = false;
+            function request_order_str() {
+                var s;
+                $.post("/return_order_str", {}, function (str) {
+                    s = String(str);
+                });
+                document.write(String(s));
+
+            }
+            request_order_str();
+        </script>-->
+    </table>
+
+
+    <script type="text/javascript">
+        $.ajaxSettings.async = false;
+        function request_holding() {
+            // 返回并刷新用户持仓情况
+            var user = $('#username').val();
+            $.post("/return_holding", { username: user }, function (user_holding) {
+                ls = user_holding[user]
+                $("#userID").html(user);
+                $("#cash").html(ls[0])
+                for (var i = 1; i < 6; i += 1) {
+                    $("#Day" + String(i)).html(String(ls[i]));
+                }
+            })
+        }
+
+
+
+        function check_user() {
+            var user = $('#username').val();
+            var pwd = $('#password').val();
+            $.post("/check_user_pwd", { username: user, password: pwd }, function (valid) {
+                // valid is a string, user_holding is a list [cash, day1, ..., day5]
+                if (valid == '1') {
+                    // window.location = "/informarket.html";
+                    $('#login_form').addClass("hid");
+                    $('#invalid_user').addClass("hid");
+                    $('#wrong_pwd').addClass("hid");
+                    $('#buy_sell_form').removeClass("hid");
+                    request_holding();
+
+                }
+                else if (valid == '-1') {
+                    $('#invalid_user').removeClass("hid");
+
+                    $('#wrong_pwd').addClass("hid");
+                }
+                else {
+                    $("#wrong_pwd").removeClass("hid")
+                    $('#invalid_user').addClass("hid");
+
+                }
+            })
+        }
+        $('#usersub').click(function () {
+            check_user();
+        })
+
+
+    </script>
+</body>
+
+</html>
