@@ -9,6 +9,6 @@ The code is allowed to use for teaching activities freely.
 ## For professor using
 * `/delete_order_page`  
     delete order, password is needed.
-* `/holding_condition`
+* `/holding_condition`  
     view holding condition of all users, password is needed.
        
