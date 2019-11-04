@@ -57,7 +57,7 @@ def update_market_price(day):
     # day = 12 - 16
     global market_price
     global market_price_record
-    print(day)
+    # print(day)
     length = len(market_price_record[day - 12])
     if length > 40:
         for i in range(length - 40):
@@ -70,7 +70,7 @@ def update_market_price(day):
     if share_sum == 0:
         market_price[day - 12] = 0
     else:
-        market_price[day - 12] = price_sum / share_sum
+        market_price[day - 12] = round(price_sum / share_sum, 2)
     return
 
 # order是2个40 * 6的list, orderID username Day quant price total
@@ -198,6 +198,7 @@ def store_data():
     # user_holding
     output = open('user_holding.txt', 'w+', encoding='UTF-8')
     for name in user_holding:
+        o = user_holding[name]
         rowtxt = "{} {} {} {} {} {} {}".format(name, o[0], o[1], o[2], o[3], o[4], o[5])
         output.write(rowtxt)
         output.write('\n')
@@ -260,9 +261,9 @@ def check_del_ID_pwd():
     ID = request.form["orderID"]
     pwd = request.form["password"]
     odt = request.form["ordertype"]
-    print(ID, pwd, odt)
+    # print(ID, pwd, odt)
     if pwd == del_pwd:
-        print("valid del pwd")
+        # print("valid del pwd")
         flag = False
         ls = []
         if odt == "buy":
@@ -281,7 +282,7 @@ def check_del_ID_pwd():
             return '1'
 
     else:
-        print("invalid del pwd")
+        # print("invalid del pwd")
         return '0'
 
 
@@ -378,7 +379,7 @@ def handle_order():
         return '0'
     
     quantity = int(request.form["quant"])
-    price = float(request.form["pri"])
+    price = round(float(request.form["pri"]), 2)
     ordertype = request.form["odt"]  # "buy" or "sell"
     day = int(request.form["Day"])  # 12 13 14 15 16 17
 
@@ -386,7 +387,7 @@ def handle_order():
     # 确定是买还是卖
 
     if ordertype == "buy":
-        print("into buy part")
+        # print("into buy part")
         if len(sell_order) != 0:
             # 如果是买，则把 该日 所有卖出订单价格由低到高排序
             ls_buy = []  # n * 6
@@ -440,7 +441,7 @@ def handle_order():
 
         # 如果是卖，则所有买的订单价格由高到低排序
     else:
-        print("into sell part")
+        # print("into sell part")
         if len(buy_order) != 0:
             # 遍历订单，每成交一单，则在 该日 的最近成交队列里加上一个订单，如果成交订单总数超过20个，则删掉旧订单
             ls_sell = []
