@@ -33,38 +33,50 @@ readin = open('user_holding.txt', 'r', encoding="UTF-8")
 s = readin.read()
 readin.close()
 s = s.split('\n')
-del s[len(s) - 1]
+del s[-1]
 for line in s:
     l = line.split()
     user_holding[l[0]] = [float(l[1]), int(l[2]), int(l[3]), int(l[4]), int(l[5]), int(l[6])]
 
 
 market_price = [0, 0, 0, 0, 0]  # 最近四十次成交的均价
-'''
-readin = open('marketprice.txt', 'r', encoding="UTF-8")
+
+readin = open('market_price.txt', 'r', encoding="UTF-8")
 s = readin.read()
+readin.close()
 s = s.split()
 for i in range(len(market_price)):
     market_price[i] = float(s[i])
-'''
 
-market_price_record = [[] for x in range(5)]  # 5 * 40 * 2 [quant, total]
 
+market_price_queue = {12:[], 13:[], 14:[], 15:[], 16:[]}  # 5 * 40 * 2 [quant, total]
+readin = open("market_price_queue.txt", 'r', encoding="UTF-8")
+s = readin.read()
+readin.close()
+s = s.split("\n\n")
+del s[-1]
+
+for d in s:
+    d = d.split("\n")
+    day = int(d[0])
+    for o in d[1:]:
+        l = o.split()
+        print(l)
+        market_price_queue[day].append([int(l[0]), float(l[1])])
 
 
 
 def update_market_price(day):
-    # day = 12 - 16
+    # day = 12 ~ 16
     global market_price
-    global market_price_record
+    global market_price_queue
     # print(day)
-    length = len(market_price_record[day - 12])
+    length = len(market_price_queue[day])
     if length > 40:
-        for i in range(length - 40):
-            del market_price_record[day - 12][i]
+        del market_price_queue[day][0]
     share_sum = 0.0
     price_sum = 0.0
-    for l in market_price_record[day - 12]:
+    for l in market_price_queue[day]:
         share_sum += l[0]
         price_sum += l[1]
     if share_sum == 0:
@@ -224,6 +236,26 @@ def store_data():
     output.write(str(order_cnt))
     output.close()
 
+    # market_price
+    output = open("market_price.txt", 'w+', encoding="UTF-8")
+    output.write("{} {} {} {} {}".format(market_price[0], market_price[1], market_price[2], market_price[3], market_price[4]))
+    output.close()
+
+    # market_price_queue
+    output = open("market_price_queue.txt", 'w+', encoding="UTF-8")
+    s = ""
+    for name in market_price_queue:
+        s += str(name) + '\n'
+        ls = market_price_queue[name]
+        for l in ls:
+            s += "{} {}\n".format(l[0], l[1])
+        s += '\n'
+    output.write(s)
+    output.close()
+
+
+
+
     return 'data stored successfully'
 
 
@@ -361,7 +393,7 @@ def handle_order():
     global user_pwd
     global user_holding
     global market_price
-    global market_price_record
+    global market_price_queue
     global buy_order
     global sell_order
     global order_cnt
@@ -422,8 +454,7 @@ def handle_order():
                             o[5] -= actual_quant * o[4]
 
                         # 更新市场价格记录队列
-                        market_price_record[day -
-                                            12].append([actual_quant, actual_quant * o[4]])
+                        market_price_queue[day].append([actual_quant, actual_quant * o[4]])
                         # 若全部买到了，则终止
                         if left_quant == 0:
                             break
@@ -476,8 +507,7 @@ def handle_order():
                             o[5] -= actual_quant * price
 
                         # 更新市场价格记录队列
-                        market_price_record[day -
-                                            12].append([actual_quant, actual_quant * price])
+                        market_price_queue[day].append([actual_quant, actual_quant * price])
                         # 若全部买到了，则终止
                         if left_quant == 0:
                             break
