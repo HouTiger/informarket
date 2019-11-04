@@ -33,6 +33,7 @@ readin = open('user_holding.txt', 'r', encoding="UTF-8")
 s = readin.read()
 readin.close()
 s = s.split('\n')
+del s[len(s) - 1]
 for line in s:
     l = line.split()
     user_holding[l[0]] = [float(l[1]), int(l[2]), int(l[3]), int(l[4]), int(l[5]), int(l[6])]
@@ -78,6 +79,7 @@ readin = open("buy_order.txt", 'r', encoding="UTF-8")
 s = readin.read()
 readin.close()
 s = s.split('\n')
+del s[len(s) - 1]
 for line in s:
     l = line.split()
     if l == []:
@@ -89,6 +91,7 @@ readin = open("sell_order.txt", 'r', encoding="UTF-8")
 s = readin.read()
 readin.close()
 s = s.split('\n')
+del s[len(s) - 1]
 for line in s:
     l = line.split()
     if l == []:
@@ -195,14 +198,16 @@ def store_data():
     # user_holding
     output = open('user_holding.txt', 'w+', encoding='UTF-8')
     for name in user_holding:
-        rowtxt = "{} {} {} {} {} {} {}\n".format(name, o[0], o[1], o[2], o[3], o[4], o[5])
+        rowtxt = "{} {} {} {} {} {} {}".format(name, o[0], o[1], o[2], o[3], o[4], o[5])
         output.write(rowtxt)
+        output.write('\n')
     output.close()
     # buy_order
     output = open('buy_order.txt', 'w+', encoding='UTF-8')
     for o in buy_order:
-        rowtxt = "{} {} {} {} {} {}\n".format(o[0], o[1], o[2], o[3], o[4], o[5])
+        rowtxt = "{} {} {} {} {} {}".format(o[0], o[1], o[2], o[3], o[4], o[5])
         output.write(rowtxt)
+        output.write('\n')
     output.close()
 
 

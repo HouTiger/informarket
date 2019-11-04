@@ -107,12 +107,14 @@
                         // window.alert(l1.length)
                         // window.alert(l2.length)
                         for (var i = 0; i < l1.length; i += 1) {
+                            // window.alert(l1[i][j]);
                             for (var j = 0; j < 6; j += 1) {
                                 if (j == 1) {
                                     continue;
                                 }
-                                var s = String(l1[i][j])
-                                if (j == 0 && (String(l1[i][1]) == user)) {
+                                
+                                var s = String(l1[i][j]);
+                                if (j == 0 && (l1[i][1] == user)) {
                                     s += '*';
                                 }
                                 $("#buy_order" + String(i) + String(j)).html(s);
@@ -129,13 +131,14 @@
                         }
                         
                         for (var i = 0; i < l2.length; i += 1) {
+                            // window.alert(l2[i][j]);
                             for (var j = 0; j < 6; j += 1) {
                                 if (j == 1) {
                                     continue;
                                 }
-                                var s = String(l2[i][j])
+                                var s = String(l2[i][j]);
                                
-                                if (j == 0 && (String(l2[i][1]) == user)) {
+                                if (j == 0 && (l2[i][1] == user)) {
                                     s += '*';
                                 }
                                 $("#sell_order" + String(i) + String(j)).html(s);
@@ -351,7 +354,8 @@
                     $('#wrong_pwd').addClass("hid");
                     $('#buy_sell_form').removeClass("hid");
                     request_holding();
-
+                    request_order();
+                    request_price();
                 }
                 else if (valid == '-1') {
                     $('#invalid_user').removeClass("hid");
