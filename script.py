@@ -61,7 +61,6 @@ for d in s:
     day = int(d[0])
     for o in d[1:]:
         l = o.split()
-        print(l)
         market_price_queue[day].append([int(l[0]), float(l[1])])
 
 
@@ -70,7 +69,6 @@ def update_market_price(day):
     # day = 12 ~ 16
     global market_price
     global market_price_queue
-    # print(day)
     length = len(market_price_queue[day])
     if length > 40:
         del market_price_queue[day][0]
@@ -419,7 +417,6 @@ def handle_order():
     # 确定是买还是卖
 
     if ordertype == "buy":
-        # print("into buy part")
         if len(sell_order) != 0:
             # 如果是买，则把 该日 所有卖出订单价格由低到高排序
             ls_buy = []  # n * 6
@@ -472,7 +469,6 @@ def handle_order():
 
         # 如果是卖，则所有买的订单价格由高到低排序
     else:
-        # print("into sell part")
         if len(buy_order) != 0:
             # 遍历订单，每成交一单，则在 该日 的最近成交队列里加上一个订单，如果成交订单总数超过20个，则删掉旧订单
             ls_sell = []
@@ -523,6 +519,7 @@ def handle_order():
             
         else:
             add_order(order_cnt, username, day, quantity, price, price * quantity, "sell")
+    store_data()
     return '1'
 
 
