@@ -2,7 +2,6 @@
 It's the game website I've written for the course "Computational Thoughts in Social Science" at Peking University.  
 The idea comes from [Teaching with Networks, Crowds and Markets](http://www-personal.umich.edu/~ladamic/courses/networks/si301w11/teaching/), it's a complementary in-class activity game for ***"Chaper 22: Markets and Information"*** in the book ***"Networks, Crowds and Markets"*** by **David Easley** and **Jon Kleinberg**.  
 The code is allowed to use for teaching activities freely.
-It's my first useful web project, enjoy it!  
 
 
 ## Initialize
