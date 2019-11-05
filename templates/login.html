@@ -49,7 +49,7 @@
             -moz-appearance: none;
         }*/
 
-        
+
 
         #head {
             font-size: large;
@@ -60,24 +60,26 @@
 </head>
 
 <body>
-    <form action='' id="login_form">
-        <input type=text placeholder="用户名 / username" id="username" class="input_blank"><br><br>
-        <input type="password" placeholder="密码/ password" id="password" class="input_blank">
-        <input type="button" value="submit" class="button" id="usersub">
-    </form>
-    <div class="hid" id="invalid_user"> invalid username</div>
-    <div class="hid" id="wrong_pwd"> wrong password</div>
-    <div class="hid" id="inv_usr_pwd"> invalid user or password, please reload the page and sign again</div>
-    <!--交易框-->
-    <br>
     <table>
         <tr>
             <td>
+                <form action='' id="login_form">
+                    <input type=text placeholder="用户名 / username" id="username" class="input_blank"><br><br>
+                    <input type="password" placeholder="密码 / password" id="password" class="input_blank">
+                    <input type="button" value="submit" class="button" id="usersub">
+                </form>
+                <div class="hid" id="invalid_user"> invalid username</div>
+                <div class="hid" id="wrong_pwd"> wrong password</div>
+                <div class="hid" id="inv_usr_pwd"> invalid user or password, please reload the page and sign again</div>
+                <!--交易框-->
+                <br>
+            </td>
+            <td>
                 <form class="hid" id="buy_sell_form">
-                    quantity: <input type="text" id="quant">
-                    <br>
-                    price: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" id="price">
-                    <br>
+                    <input type="text" placeholder="数量 / quantity" id="quant" class="input_blank">
+                    <br><br>
+                    <input type="text" placeholder="单价 / price" id="price" class="input_blank">
+                    <br><br>
                     <select name="day" id="sel_day">
                         <option value="12">December 12
                         <option value="13">December 13
@@ -95,8 +97,8 @@
                     <div id="invalid_quant_price" class="hid"> invalid quantity or price</div>
                     <div id="order_sub_suc" class="hid"> order submitted successfully</div>
                 </form>
-                <br>
             </td>
+
             <script>
                 $.ajaxSettings.async = false;
 
@@ -114,7 +116,7 @@
                                 if (j == 1) {
                                     continue;
                                 }
-                                
+
                                 var s = String(l1[i][j]);
                                 if (j == 0 && (l1[i][1] == user)) {
                                     s += '*';
@@ -127,11 +129,11 @@
                                 if (j == 1) {
                                     continue;
                                 }
-                                
+
                                 $("#buy_order" + String(i) + String(j)).html("____________");
                             }
                         }
-                        
+
                         for (var i = 0; i < l2.length; i += 1) {
                             // window.alert(l2[i][j]);
                             for (var j = 0; j < 6; j += 1) {
@@ -139,7 +141,7 @@
                                     continue;
                                 }
                                 var s = String(l2[i][j]);
-                               
+
                                 if (j == 0 && (l2[i][1] == user)) {
                                     s += '*';
                                 }
@@ -192,7 +194,7 @@
             </script>
             <!--显示市场价格-->
             <td>
-                <table border=1>
+                <table border=1 align=right>
                     <tr>
                         <th>Day</th>
                         <th>Market Price</th>
@@ -260,26 +262,26 @@
     </table>
     <br>
     <!--显示自己的订单-->
-    
+
 
     <!--显示所有交易订单-->
     <br>
     <table>
         <tr>
             <td>
-                <table border=1> 
-                    <tr>        
-                    <th> Buy OrderID</th>
-                    <th> Day</th>
-                    <th> Quantity</th>
-                    <th> Price</th>
-                    <th> Total</th>
+                <table border=1>
+                    <tr>
+                        <th> Buy OrderID</th>
+                        <th> Day</th>
+                        <th> Quantity</th>
+                        <th> Price</th>
+                        <th> Total</th>
                     </tr>
                     <script>
                         $.ajaxSettings.async = false;
                         function request_order_str1() {
                             var buy = "buy";
-                            $.post("/return_order_str", {type: buy}, function (str) {
+                            $.post("/return_order_str", { type: buy }, function (str) {
                                 document.write(str);
                             })
                         }
@@ -298,15 +300,15 @@
                     <th> Price</th>
                     <th> Total</th>
                     <script>
-                            $.ajaxSettings.async = false;
-                            function request_order_str2() {
-                                var sell = "sell"
-                                $.post("/return_order_str", {type: sell}, function (str) {
-                                    document.write(str);
-                                })
-                            }
-                            request_order_str2();
-                        </script>
+                        $.ajaxSettings.async = false;
+                        function request_order_str2() {
+                            var sell = "sell"
+                            $.post("/return_order_str", { type: sell }, function (str) {
+                                document.write(str);
+                            })
+                        }
+                        request_order_str2();
+                    </script>
                 </table>
             </td>
         </tr>
