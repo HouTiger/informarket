@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Change Password</title>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <style>
+        .hid {
+            display: none
+        }
+
+        option {
+            display: inline-block;
+            width: 100px;
+            position: relative;
+            vertical-align: middle;
+            padding: 0;
+            overflow: hidden;
+            background-color: #fff;
+            color: #555;
+            border: 1px solid #aaa;
+            text-shadow: none;
+            border-radius: 4px;
+            transition: box-shadow 0.25s ease;
+            z-index: 2;
+        }
+
+        .button {
+            width: 70px;
+            height: 40px;
+            font-family: monospace;
+        }
+
+        .input_blank {
+            width: 200px;
+            height: 20px;
+        }
+
+        label {
+            vertical-align: top;
+        }
+
+
+        #head {
+            font-size: large;
+            width: 200px;
+            height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <form action='' id="login_form">
+
+        <input type=text placeholder="用户名 / username" id="username" class="input_blank"><br>
+        <br>
+        <input type="password" placeholder="当前密码 / current password" id="password" class="input_blank"><br>
+        <br>
+        <input type="text" placeholder="新密码 / new password, length <= 10" id="new_password" class="input_blank"> <br>
+        <br>
+
+        <input type="button" value="submit" class="button" id="usersub">
+
+    </form>
+    <div class="hid" id="invalid_user_pwd"> invalid username, password or new password </div>
+
+    <div class="hid" id="pwd_changed"> password changed successfully</div>
+    <script>
+        function send_pwd_change() {
+            var user = $("#username").val();
+            var pwd = $("#password").val();
+            var new_pwd = $("#new_password").val();
+            $.post("/change_pwd", {username: user, password: pwd, new_password: new_pwd}, function (valid) {
+                if (valid == '0') {
+                    $("#invalid_user_pwd").removeClass("hid");
+                    $("#pwd_changed").addClass("hid");
+                }
+                else {
+                    $("#invalid_user_pwd").addClass("hid");
+                    $("#pwd_changed").removeClass("hid");
+                }
+            })
+        }
+        $("#usersub").click(function () {
+            send_pwd_change();
+        })
+
+    </script>
+</body>

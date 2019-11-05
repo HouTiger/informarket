@@ -49,6 +49,8 @@
             -moz-appearance: none;
         }*/
 
+        
+
         #head {
             font-size: large;
             width: 200px;
@@ -59,15 +61,15 @@
 
 <body>
     <form action='' id="login_form">
-        username: <input type=text id="username"><br>
-        password: <input type=text id="password">
+        <input type=text placeholder="用户名 / username" id="username" class="input_blank"><br><br>
+        <input type="password" placeholder="密码/ password" id="password" class="input_blank">
         <input type="button" value="submit" class="button" id="usersub">
     </form>
     <div class="hid" id="invalid_user"> invalid username</div>
     <div class="hid" id="wrong_pwd"> wrong password</div>
     <div class="hid" id="inv_usr_pwd"> invalid user or password, please reload the page and sign again</div>
     <!--交易框-->
-
+    <br>
     <table>
         <tr>
             <td>
