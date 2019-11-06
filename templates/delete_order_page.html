@@ -21,7 +21,9 @@
     <form action='' id="login_form">
         <input type=text id="orderID" placeholder="Order ID" class="input_blank">
         <br><br>
-        <input type=text id="password" placeholder="password" class="input_blank">
+        <input type=text id="username" placeholder="username" class="input_blank">
+        <br><br>
+        <input type=password id="password" placeholder="password" class="input_blank">
         <br><br>
         order type: 
         <select id="ordertype">
@@ -31,7 +33,7 @@
         <input type="button" value="submit" id="ordersub">
     </form>
     <br>
-    <div id="inv_pwd" class="hid"> invalid orderID or password</div>
+    <div id="inv_pwd" class="hid"> invalid orderID, username or password</div>
     <div id="deleted" class="hid"> order deleted successfully</div>
     <table>
             <tr>
@@ -130,21 +132,23 @@
         }
 
         function check_pwd() {
+            var user = $("#username").val();
             var pwd = $("#password").val();
             var ID = $("#orderID").val();
             var odt = $("#ordertype").val();
-            $.post("/check_del_ID_pwd", {orderID: ID, password: pwd, ordertype: odt}, function(valid) {
+            $.post("/check_user_pwd", {username: user, password: pwd}, function(valid) {
                 if (valid == "1") {
                     $("#inv_pwd").addClass("hid");
-
-                    // 发送删除订单的请求
-                    $.post("/handle_delete", {orderID: ID, ordertype: odt}, function() {
-                        // window.alert("handle delete")
-                        $("#deleted").removeClass("hid");
-                    });
-                    // 更新页面订单情况
+                    $.post("/handle_delete", {orderID: ID, ordertype: odt}, function(valid) {
+                        if (valid == '1') {
+                            $("#deleted").removeClass("hid");
+                        
+                        }
+                        else {
+                            $("#inv_pwd").removeClass("hid");
+                        }
+                    })
                     request_order();
-
                 }
                 else {
                     $("#inv_pwd").removeClass("hid");

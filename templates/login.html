@@ -60,6 +60,7 @@
 </head>
 
 <body>
+    <br><br><br>
     <table>
         <tr>
             <td>
@@ -67,9 +68,9 @@
                     <input type=text placeholder="用户名 / username" id="username" class="input_blank"><br><br>
                     <input type="password" placeholder="密码 / password" id="password" class="input_blank">
                     <input type="button" value="submit" class="button" id="usersub">
+                    
                 </form>
-                <div class="hid" id="invalid_user"> invalid username</div>
-                <div class="hid" id="wrong_pwd"> wrong password</div>
+                <div class="hid" id="invalid_user"> invalid username or password</div>
                 <div class="hid" id="inv_usr_pwd"> invalid user or password, please reload the page and sign again</div>
                 <!--交易框-->
                 <br>
@@ -93,9 +94,10 @@
                     </select>
 
                     <input type="button" value="submit" class="button" id="order_submit">
-
+                   
                     <div id="invalid_quant_price" class="hid"> invalid quantity or price</div>
                     <div id="order_sub_suc" class="hid"> order submitted successfully</div>
+                    <div id="too_many_odr" class="hid"> too many order</div>
                 </form>
             </td>
 
@@ -172,14 +174,21 @@
                         (typeof (n_price) != 'number') || n_quantity <= 0 || n_quantity > 320 || n_price > 3200 || n_price <= 0 || (Math.floor(n_quantity) != n_quantity)) {
                         $("#invalid_quant_price").removeClass("hid");
                         $("#order_sub_suc").addClass("hid")
+                        $("#too_many_odr").addClass("hid");
                     }
                     else {
                         $("#invalid_quant_price").addClass("hid");
-                        $("#order_sub_suc").removeClass("hid")
-
+                        $("#order_sub_suc").addClass("hid")
+                        $("#too_many_odr").addClass("hid");
                         $.post("/handle_order", { user: username, pwd: password, quant: quantity, pri: price, Day: date, odt: odtflag }, function (s) {
                             if (s == '0') {
                                 $("#inv_usr_pwd").removeClass("hid");
+                            }
+                            if (s == '-1') {
+                                $("#too_many_odr").removeClass("hid");
+                            }
+                            if (s == '1') {
+                                $("#order_sub_suc").removeClass("hid");
                             }
                             request_price();
                             request_holding();
@@ -191,6 +200,7 @@
                 $("#order_submit").click(function () {
                     send_order_request();
                 })
+
             </script>
             <!--显示市场价格-->
             <td>
@@ -222,8 +232,18 @@
                 </table>
             </td>
         </tr>
-    </table>
 
+    </table>
+    <input type="button" value="refresh" class="button" id="page_refresh">
+    <script>
+        $.ajaxSettings.async = false;
+        $("#page_refresh").click(function() {
+            request_price();
+            request_holding();
+            request_order();
+        })
+    </script>
+    <br>
     <script>
         $.ajaxSettings.async = false;
         function request_price() {
@@ -352,23 +372,15 @@
             $.post("/check_user_pwd", { username: user, password: pwd }, function (valid) {
                 // valid is a string, user_holding is a list [cash, day1, ..., day5]
                 if (valid == '1') {
-                    // window.location = "/informarket.html";
                     $('#login_form').addClass("hid");
                     $('#invalid_user').addClass("hid");
-                    $('#wrong_pwd').addClass("hid");
                     $('#buy_sell_form').removeClass("hid");
                     request_holding();
                     request_order();
                     request_price();
                 }
-                else if (valid == '-1') {
-                    $('#invalid_user').removeClass("hid");
-
-                    $('#wrong_pwd').addClass("hid");
-                }
                 else {
-                    $("#wrong_pwd").removeClass("hid")
-                    $('#invalid_user').addClass("hid");
+                    $('#invalid_user').removeClass("hid");
 
                 }
             })
