@@ -169,7 +169,7 @@
                     var n_price = Number(price);
                     var odtflag = $("#buy_sell_sel").val();
                     if (quantity == "" || price == "" || (typeof (n_quantity) != 'number') ||
-                        (typeof (n_price) != 'number') || n_quantity <= 0 || n_price <= 0 || (Math.floor(n_quantity) != n_quantity)) {
+                        (typeof (n_price) != 'number') || n_quantity <= 0 || n_quantity > 320 || n_price > 3200 || n_price <= 0 || (Math.floor(n_quantity) != n_quantity)) {
                         $("#invalid_quant_price").removeClass("hid");
                         $("#order_sub_suc").addClass("hid")
                     }
