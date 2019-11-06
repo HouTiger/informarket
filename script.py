@@ -165,7 +165,7 @@ def holding_condition():
     return render_template("holding_condition.html")
 
 
-@myWeb.route("/delete_order_page")
+@myWeb.route("/prof_delete_order_page")
 def delete_order():
     return render_template("delete_order.html")
 
