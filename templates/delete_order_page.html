@@ -139,13 +139,15 @@
             $.post("/check_user_pwd", {username: user, password: pwd}, function(valid) {
                 if (valid == "1") {
                     $("#inv_pwd").addClass("hid");
+                    $("#deleted").addClass("hid");
                     $.post("/handle_delete", {orderID: ID, ordertype: odt}, function(valid) {
                         if (valid == '1') {
                             $("#deleted").removeClass("hid");
-                        
+                            $("#inv_pwd").addClass("hid");
                         }
                         else {
                             $("#inv_pwd").removeClass("hid");
+                            $("#deleted").addClass("hid");
                         }
                     })
                     request_order();
