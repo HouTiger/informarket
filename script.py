@@ -337,7 +337,9 @@ def check_del_ID_pwd():
 @myWeb.route("/return_holding", methods=["post"])
 def return_holding():
     username = request.form["username"]
-    return {username: user_holding[username]}
+    ls = user_holding[username].copy()
+    ls[0] = round(ls[0], 4)
+    return {username: ls}
 
 
 @myWeb.route("/return_holding_str", methods=["post"])
@@ -351,9 +353,12 @@ def return_holding_str():
         s += name
         s += "</td>"
         hold = user_holding[name]
-        for it in hold:
+        for i in range(len(hold)):
             s += "<td>"
-            s += str(it)
+            tmp = hold[i]
+            if i == 0:
+                tmp = round(tmp, 4)
+            s += str(tmp)
             s += "</td>"
 
         s += "</tr>"
@@ -369,8 +374,13 @@ def return_price():
 
 @myWeb.route("/return_order", methods=["post"])
 def return_order():
-
-    return {"buyorder": buy_order, "sellorder": sell_order}
+    l1 = buy_order.copy()
+    for o in l1:
+        o[5] = round(o[5], 3)
+    l2 = sell_order.copy()
+    for o in l2:
+        o[5] = round(o[5], 3)
+    return {"buyorder": l1, "sellorder": l2}
 
 
 @myWeb.route("/return_order_str", methods=["post"])
@@ -378,9 +388,9 @@ def return_order_str():
     table_type = request.form["type"]
     ls = []
     if table_type == "buy":
-        ls = buy_order
+        ls = buy_order.copy()
     else:
-        ls = sell_order
+        ls = sell_order.copy()
 
     lines = len(ls)
 
@@ -390,8 +400,11 @@ def return_order_str():
         for j in range(6):
             if j == 1:
                 continue
+            tmp = ls[i][j]
+            if j == 5:
+                tmp = round(tmp, 3)
             s += ("<td id='" + table_type + "_order" + str(i) +
-                  str(j) + "'>" + str(ls[i][j]) + "</td>")
+                  str(j) + "'>" + str(tmp) + "</td>")
         s += "</tr>"
     for i in range(lines, 40):
         s += "<tr>"
@@ -492,29 +505,33 @@ def handle_order():
 
                 if price >= o[4]:  # 成交价为o[4]
                     actual_quant = min(left_quant, o[3])
+                    # 实际成交额
+                    actual_amount = round(actual_quant * o[4], 3)
                     # 检查双方股票和资金余额
-                    if actual_quant <= user_holding[o[1]][day - 12 + 1] and user_holding[username][0] >= (actual_quant * o[4]):
+                    if actual_quant <= user_holding[o[1]][day - 12 + 1] and user_holding[username][0] >= actual_amount:
+                        
+                        
                         # 处理订单余额
                         left_quant -= actual_quant
                         # 股票变动
                         user_holding[username][day - 12 + 1] += actual_quant
                         user_holding[o[1]][day - 12 + 1] -= actual_quant
                         # 资金变动
-                        user_holding[username][0] -= actual_quant * o[4]
-                        
-                        user_holding[o[1]][0] += actual_quant * o[4]
-                        
+                        user_holding[username][0] -= actual_amount
+                        user_holding[username][0] = round(user_holding[username][0], 4)
+                        user_holding[o[1]][0] += actual_amount
+                        user_holding[o[1]][0] = round(user_holding[o[1]][0], 4)
                         # 更新卖方订单
                         if actual_quant == o[3]:
                             del_order(o[0], "sell")
                         else:
                             o[3] -= actual_quant
-                            o[5] = o[3] * o[4]
+                            o[5] = round(o[3] * o[4], 3)
                         
 
                         # 更新市场价格记录队列
                         if o[1] != username:
-                            market_price_queue[day].append([actual_quant, actual_quant * o[4]])
+                            market_price_queue[day].append([actual_quant, actual_amount])
                         # 若全部买到了，则终止
                         if left_quant == 0:
                             break
@@ -523,13 +540,13 @@ def handle_order():
             # 若有剩余，添加新订单
             if left_quant > 0:
                 add_order(order_cnt, username, day, left_quant,
-                          price, price * left_quant, "buy")
+                          price, round(price * left_quant, 3), "buy")
 
             # 更新市场价格
             update_market_price(day)
         else:
             add_order(order_cnt, username, day, quantity,
-                      price, price * quantity, "buy")
+                      price, round(price * quantity, 3), "buy")
 
         # 如果是卖，则所有买的订单价格由高到低排序
     else:
@@ -547,31 +564,34 @@ def handle_order():
             for i in range(len(ls_sell)):
                 o = ls_sell[i]
 
-                if price <= o[4]:  # 成交价为o[4]
+                if price <= o[4]:  # 成交价为price
                     actual_quant = min(left_quant, o[3])
+                    # 实际成交额
+                    actual_amount = round(actual_quant * price, 3)
+
                     # 检查双方股票和资金余额
-                    if actual_quant <= user_holding[username][day - 12 + 1] and user_holding[o[1]][0] >= (actual_quant * price):
+                    if actual_quant <= user_holding[username][day - 12 + 1] and user_holding[o[1]][0] >= actual_amount:
                         # 处理订单余额
                         left_quant -= actual_quant
                         # 股票变动
                         user_holding[username][day - 12 + 1] -= actual_quant                      
                         user_holding[o[1]][day - 12 + 1] += actual_quant
                         # 资金变动
-                        user_holding[username][0] += actual_quant * price
-                      
-                        user_holding[o[1]][0] -= actual_quant * price
-                
+                        user_holding[username][0] += actual_amount
+                        user_holding[username][0] = round(user_holding[username][0], 4)
+                        user_holding[o[1]][0] -= actual_amount
+                        user_holding[o[1]][0] = round(user_holding[o[1]][0], 4)
                         # 更新买方订单
                         if actual_quant == o[3]:
                             del_order(o[0], "buy")
                         else:
                             o[3] -= actual_quant
-                            o[5] = o[3] * o[4]
+                            o[5] = round(o[3] * o[4], 3)
                     
 
                         # 更新市场价格记录队列
                         if o[1] != username:
-                            market_price_queue[day].append([actual_quant, actual_quant * price])
+                            market_price_queue[day].append([actual_quant, actual_amount])
                         # 若全部买到了，则终止
                         if left_quant == 0:
                             break
@@ -580,14 +600,14 @@ def handle_order():
             # 若有剩余，添加新订单
             if left_quant > 0:
                 add_order(order_cnt, username, day, left_quant,
-                          price, price * left_quant, "sell")
+                          price, round(price * left_quant, 3), "sell")
 
             # 更新市场价格
             update_market_price(day)
 
         else:
             add_order(order_cnt, username, day, quantity,
-                      price, price * quantity, "sell")
+                      price, round(price * quantity, 3), "sell")
     store_data()
     return '1'
 
