@@ -98,6 +98,7 @@
                     <div id="invalid_quant_price" class="hid"> invalid quantity or price</div>
                     <div id="order_sub_suc" class="hid"> order submitted successfully</div>
                     <div id="too_many_odr" class="hid"> too many order</div>
+                    
                 </form>
             </td>
 
@@ -170,16 +171,18 @@
                     var n_quantity = Number(quantity);
                     var n_price = Number(price);
                     var odtflag = $("#buy_sell_sel").val();
+
+                    $("#invalid_quant_price").addClass("hid");
+                    $("#order_sub_suc").addClass("hid");
+                    $("#too_many_odr").addClass("hid");
+                    $("#inv_usr_pwd").addClass("hid");
+
                     if (quantity == "" || price == "" || (typeof (n_quantity) != 'number') ||
                         (typeof (n_price) != 'number') || n_quantity <= 0 || n_quantity > 320 || n_price > 3200 || n_price <= 0 || (Math.floor(n_quantity) != n_quantity)) {
                         $("#invalid_quant_price").removeClass("hid");
-                        $("#order_sub_suc").addClass("hid")
-                        $("#too_many_odr").addClass("hid");
                     }
                     else {
-                        $("#invalid_quant_price").addClass("hid");
-                        $("#order_sub_suc").addClass("hid")
-                        $("#too_many_odr").addClass("hid");
+                        
                         $.post("/handle_order", { user: username, pwd: password, quant: quantity, pri: price, Day: date, odt: odtflag }, function (s) {
                             if (s == '0') {
                                 $("#inv_usr_pwd").removeClass("hid");
@@ -189,6 +192,9 @@
                             }
                             if (s == '1') {
                                 $("#order_sub_suc").removeClass("hid");
+                            }
+                            if (s == "-2") {
+                                $("#invalid_quant_price").removeClass("hid");
                             }
                             request_price();
                             request_holding();

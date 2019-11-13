@@ -469,6 +469,11 @@ def handle_order():
     ordertype = request.form["odt"]  # "buy" or "sell"
     day = int(request.form["Day"])  # 12 13 14 15 16 17
 
+    # 检查用户cash or 持仓
+    if ordertype == "buy" and user_holding[username][0] < round(quantity * price, 3):
+        return "-2"
+    if ordertype == "sell" and user_holding[username][day - 12 + 1] < quantity:
+        return "-2"
 
     # 检查同一用户订单数量
     ls = []
